@@ -113,3 +113,6 @@ tzdata
 urllib3                   
 watchdog                  
 yarl                   
+pandas
+xlsxwriter
+fpdf

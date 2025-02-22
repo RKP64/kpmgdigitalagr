@@ -4,17 +4,16 @@ import pandas as pd
 import io
 from fpdf import FPDF
 
-# LLM & Vector Store imports for Q&A
+# LLM & Vector Store imports (for the AI Q&A layer)
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import FAISS
 from langchain_groq import ChatGroq
 
 #########################################
-# STREAMLIT PAGE CONFIG & STYLES
+# STREAMLIT CONFIG & STYLES
 #########################################
 st.set_page_config(page_title="EDA Assistant - Annotation & Q&A", layout="wide")
-
 st.markdown(
     """
     <style>
@@ -50,8 +49,6 @@ if "conversation_history" not in st.session_state:
     st.session_state.conversation_history = []
 if "latest_annots_df" not in st.session_state:
     st.session_state.latest_annots_df = pd.DataFrame()
-if "doc_qa_response" not in st.session_state:
-    st.session_state.doc_qa_response = ""
 if "ai_annotation_response" not in st.session_state:
     st.session_state.ai_annotation_response = ""
 
@@ -75,18 +72,17 @@ retrieve_mode = st.sidebar.selectbox("Retrieve Mode:", ["Text (Hybrid)", "Vector
 #########################################
 # FILE UPLOAD
 #########################################
-st.header("EDA Assistant - Annotation Extraction & Q&A")
-uploaded_files = st.file_uploader(
-    "Upload PDF(s):", type=["pdf"], accept_multiple_files=True
-)
+st.header("EDA Assistant - Annotation Extraction & AI Q&A")
+uploaded_files = st.file_uploader("Upload PDF(s):", type=["pdf"], accept_multiple_files=True)
 
 #########################################
-# HELPER: Extract Annotations Using PyMuPDF
+# HELPER: Extract All Annotations Using PyMuPDF
 #########################################
-def extract_annotations_in_range(file_bytes, start_page, end_page):
+def extract_all_annotations_in_range(file_bytes, start_page, end_page):
     """
-    Opens the PDF from file_bytes using PyMuPDF and extracts highlight annotations
-    from pages [start_page, end_page) along with metadata.
+    Opens the PDF from file_bytes using PyMuPDF and extracts all annotations
+    (of any type) from pages [start_page, end_page). It also attempts to parse
+    a clause from the annotation content (if present).
     Returns a list of dictionaries.
     """
     doc = fitz.open(stream=file_bytes, filetype="pdf")
@@ -104,14 +100,13 @@ def extract_annotations_in_range(file_bytes, start_page, end_page):
         if not annots:
             continue
         for annot in annots:
-            if annot.type[0] != "Highlight":
-                continue
             info = annot.info
             content = info.get("content", "").strip()
             clause_match = clause_pattern.search(content)
             clause = clause_match.group(1) if clause_match else "null"
             annotations.append({
                 "Page No.": page_idx + 1,
+                "Type": annot.type[0],
                 "Clause": clause,
                 "Content": content,
                 "Author": info.get("title", "Unknown"),
@@ -122,7 +117,7 @@ def extract_annotations_in_range(file_bytes, start_page, end_page):
     return annotations
 
 #########################################
-# HELPER: Chunk PDF Text (for Document Q&A)
+# (OPTIONAL) HELPER: Chunk PDF Text for Document Q&A (RAG)
 #########################################
 def chunk_pdf_text(file_bytes):
     doc = fitz.open(stream=file_bytes, filetype="pdf")
@@ -135,7 +130,7 @@ def chunk_pdf_text(file_bytes):
     return chunks
 
 #########################################
-# PROCESS FILES: Build Vector Store for Document Q&A (Optional)
+# PROCESS UPLOADED FILES FOR DOCUMENT Q&A (Optional)
 #########################################
 vector_store = None
 if uploaded_files:
@@ -159,7 +154,7 @@ if uploaded_files:
 # PREBUILT PAGE-RANGE PROMPTS FOR ANNOTATION EXTRACTION
 #########################################
 page_prompts = [
-    "Extract annotations from pages 0–20",  # Explicit 0-based for first range
+    "Extract annotations from pages 0–20",  # explicit 0-based for first range
     "Extract annotations from pages 21–40",
     "Extract annotations from pages 41–60",
     "Extract annotations from pages 61–80",
@@ -170,7 +165,7 @@ selected_prompt = st.radio("Select a page-range prompt or type your own:", page_
 custom_prompt = st.text_input("Or type your custom page-range request:")
 
 #########################################
-# SUBMIT BUTTON: Extract Raw Annotations
+# SUBMIT: Raw Annotation Extraction
 #########################################
 if st.button("Extract Raw Annotations"):
     final_prompt = custom_prompt if custom_prompt else selected_prompt
@@ -188,7 +183,7 @@ if st.button("Extract Raw Annotations"):
         pdf_file = next((f for f in uploaded_files if f.type == "application/pdf"), None)
         if pdf_file:
             file_bytes = pdf_file.getvalue()
-            annots = extract_annotations_in_range(file_bytes, start_page, end_page)
+            annots = extract_all_annotations_in_range(file_bytes, start_page, end_page)
             if annots:
                 df_annots = pd.DataFrame(annots)
                 st.subheader("Raw Annotation Table")
@@ -215,6 +210,7 @@ if st.button("Generate AI Annotation Response"):
     if st.session_state.latest_annots_df.empty:
         st.warning("Please extract annotations first.")
     else:
+        # Build a bullet list from the raw annotations
         bullet_points = []
         for _, row in st.session_state.latest_annots_df.iterrows():
             bullet_points.append(
@@ -226,7 +222,7 @@ if st.button("Generate AI Annotation Response"):
             "role": "system",
             "content": (
                 "You are an AI assistant specialized in analyzing PDF annotations. "
-                "Based on the provided annotations, answer the question concisely and group similar issues."
+                "Based on the provided annotations, answer the question concisely and group similar issues together."
             )
         }
         user_message = {
@@ -248,7 +244,7 @@ if st.button("Generate AI Annotation Response"):
             st.error(f"Error generating AI annotation response: {str(e)}")
 
 #########################################
-# STEP 3: Document Q&A (General Q&A over the entire document)
+# STEP 3: Document Q&A (General Q&A using RAG)
 #########################################
 st.subheader("Step 3: Document Q&A (Using RAG)")
 doc_question = st.text_input("Enter your question about the document:", "What are the main topics discussed?")
@@ -256,7 +252,6 @@ if st.button("Generate Document Q&A Response"):
     if vector_store is None:
         st.warning("Document vector store is not built. Please upload and process the document.")
     else:
-        # Retrieve relevant chunks from the vector store
         docs = vector_store.similarity_search(doc_question, k=5)
         context = " ".join([d.page_content for d in docs])
         if len(context) > max_context_length:
@@ -282,7 +277,6 @@ if st.button("Generate Document Q&A Response"):
                 "question": "Document Q&A: " + doc_question,
                 "response": doc_qa_output
             })
-            st.session_state.doc_qa_response = doc_qa_output
         except Exception as e:
             st.error(f"Error generating document Q&A response: {str(e)}")
 
@@ -332,3 +326,5 @@ if not st.session_state.latest_annots_df.empty:
             file_name="raw_annotations.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
+
+        

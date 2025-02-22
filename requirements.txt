@@ -116,3 +116,4 @@ yarl
 pandas
 xlsxwriter
 fpdf
+pymupdf

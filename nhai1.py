@@ -13,7 +13,7 @@ from langchain_groq import ChatGroq
 #########################################
 # STREAMLIT CONFIG & STYLES
 #########################################
-st.set_page_config(page_title="EDA Assistant - Annotation & Q&A", layout="wide")
+st.set_page_config(page_title="KPMG Digital Assistant, layout="wide")
 st.markdown(
     """
     <style>
@@ -134,7 +134,7 @@ def chunk_pdf_text(file_bytes):
 #########################################
 vector_store = None
 if uploaded_files:
-    st.subheader("Processing Documents for Document Q&A (Optional)")
+    st.subheader("Processing Documents")
     for uploaded_file in uploaded_files:
         try:
             if uploaded_file.type == "application/pdf":
@@ -246,7 +246,7 @@ if st.button("Generate AI Annotation Response"):
 #########################################
 # STEP 3: Document Q&A (General Q&A using RAG)
 #########################################
-st.subheader("Step 3: Document Q&A (Using RAG)")
+st.subheader("Step 3: Document intelligence ")
 doc_question = st.text_input("Enter your question about the document:", "What are the main topics discussed?")
 if st.button("Generate Document Q&A Response"):
     if vector_store is None:

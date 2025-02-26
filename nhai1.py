@@ -13,7 +13,7 @@ from langchain_groq import ChatGroq
 #########################################
 # STREAMLIT CONFIG & STYLES
 #########################################
-st.set_page_config(page_title="KPMG Digital Assistant, layout="wide")
+st.set_page_config(page_title="KPMG Digital Assistant", layout="wide")
 st.markdown(
     """
     <style>

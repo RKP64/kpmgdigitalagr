@@ -154,10 +154,11 @@ if uploaded_files:
 # PREBUILT PAGE-RANGE PROMPTS FOR ANNOTATION EXTRACTION
 #########################################
 page_prompts = [
-    "Extract annotations from pages 0–50",  # explicit 0-based for first range
-    "Extract annotations from pages 51-101",
-    "Extract annotations from pages 102–151",
-    "Extract annotations from pages 151-250",
+    "Extract annotations from pages 0–50",
+    "Extract annotations from pages 51–100",
+    "Extract annotations from pages 101–150",
+    "Extract annotations from pages 151–200",
+    "Extract annotations from pages 201–250",
 ]
 
 st.subheader("Step 1: Extract Raw Annotations")
@@ -170,14 +171,16 @@ custom_prompt = st.text_input("Or type your custom page-range request:")
 if st.button("Extract Raw Annotations"):
     final_prompt = custom_prompt if custom_prompt else selected_prompt
     start_page, end_page = 0, 0
-    if selected_prompt == "Extract annotations from pages 0–20":
-        start_page, end_page = 0, 50
-    elif selected_prompt == "Extract annotations from pages 21–40":
-        start_page, end_page = 51, 100
-    elif selected_prompt == "Extract annotations from pages 41–60":
+    if selected_prompt == "Extract annotations from pages 0–50":
+        start_page, end_page = 0, 51
+    elif selected_prompt == "Extract annotations from pages 51–100":
+        start_page, end_page = 51, 101
+    elif selected_prompt == "Extract annotations from pages 101–150":
         start_page, end_page = 101, 151
-    elif selected_prompt == "Extract annotations from pages 61–80":
-        start_page, end_page = 151, 251
+    elif selected_prompt == "Extract annotations from pages 151–200":
+        start_page, end_page = 151, 201
+    elif selected_prompt == "Extract annotations from pages 201–250":
+        start_page, end_page = 201, 251
 
     if uploaded_files:
         pdf_file = next((f for f in uploaded_files if f.type == "application/pdf"), None)
@@ -246,7 +249,7 @@ if st.button("Generate AI Annotation Response"):
 #########################################
 # STEP 3: Document Q&A (General Q&A using RAG)
 #########################################
-st.subheader("Step 3: Document intelligence ")
+st.subheader("Step 3: Document Intelligence")
 doc_question = st.text_input("Enter your question about the document:", "What are the main topics discussed?")
 if st.button("Generate Document Q&A Response"):
     if vector_store is None:
@@ -326,5 +329,3 @@ if not st.session_state.latest_annots_df.empty:
             file_name="raw_annotations.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
-
-        

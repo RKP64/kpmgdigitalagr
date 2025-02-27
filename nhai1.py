@@ -154,10 +154,10 @@ if uploaded_files:
 # PREBUILT PAGE-RANGE PROMPTS FOR ANNOTATION EXTRACTION
 #########################################
 page_prompts = [
-    "Extract annotations from pages 0–20",  # explicit 0-based for first range
-    "Extract annotations from pages 21–40",
-    "Extract annotations from pages 41–60",
-    "Extract annotations from pages 61–80",
+    "Extract annotations from pages 0–50",  # explicit 0-based for first range
+    "Extract annotations from pages 51-101",
+    "Extract annotations from pages 102–151",
+    "Extract annotations from pages 151-250",
 ]
 
 st.subheader("Step 1: Extract Raw Annotations")
@@ -171,13 +171,13 @@ if st.button("Extract Raw Annotations"):
     final_prompt = custom_prompt if custom_prompt else selected_prompt
     start_page, end_page = 0, 0
     if selected_prompt == "Extract annotations from pages 0–20":
-        start_page, end_page = 0, 20
+        start_page, end_page = 0, 50
     elif selected_prompt == "Extract annotations from pages 21–40":
-        start_page, end_page = 21, 41
+        start_page, end_page = 51, 100
     elif selected_prompt == "Extract annotations from pages 41–60":
-        start_page, end_page = 41, 61
+        start_page, end_page = 101, 151
     elif selected_prompt == "Extract annotations from pages 61–80":
-        start_page, end_page = 61, 81
+        start_page, end_page = 151, 251
 
     if uploaded_files:
         pdf_file = next((f for f in uploaded_files if f.type == "application/pdf"), None)

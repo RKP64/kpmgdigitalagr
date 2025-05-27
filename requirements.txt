@@ -1,118 +1,28 @@
-aiohappyeyeballs          
-aiohttp                   
-aiosignal                 
-altair                    
-annotated-types           
-anyio                     
-async-timeout             
-attrs                     
-blinker                   
-boto3                     
-botocore                  
-cachetools                
-certifi                   
-charset-normalizer        
-click                     
-colorama                  
-dataclasses-json          
-distro                    
-exceptiongroup            
-faiss-cpu                 
-filelock                  
-frozenlist                
-fsspec                    
-gitdb                     
-GitPython                
-gpt4all                   
-greenlet                  
-groq                   
-h11                       
-httpcore                  
-httpx                     
-httpx-sse                 
-huggingface-hub           
-idna                      
-Jinja2                    
-jiter                     
-jmespath                  
-jsonpatch                 
-jsonpointer               
-jsonschema                
-jsonschema-specifications 
-langchain                 
-langchain-community       
-langchain-core            
-langchain-groq            
-langchain-text-splitters  
-langsmith                 
-llvmlite                  
-markdown-it-py            
-MarkupSafe                
-marshmallow               
-mdurl                     
-more-itertools            
-mpmath                    
-multidict                 
-mypy-extensions           
-narwhals                  
-networkx                
-numba                     
-numpy                     
-openai                    
-openai-whisper            
-orjson                    
-packaging                
-pandas                    
-pillow                    
-pip                     
-propcache                                  
-pyarrow                   
-pydantic                  
-pydantic_core             
-pydantic-settings         
-pydeck                    
-pydub                     
-Pygments                  
-pypdf                     
-PyPDF2                    
-pyperclip                 
-python-dateutil           
-python-dotenv             
-pytz                      
-PyYAML                    
-referencing               
-regex                     
-requests                  
-requests-toolbelt         
-rich                      
-rpds-py                   
-s3transfer                
-safetensors               
-setuptools                
-six                       
-smmap                     
-sniffio                   
-SQLAlchemy                
-streamlit                 
-streamlit-option-menu     
-sympy                     
-tenacity                  
-tiktoken                  
-tokenizers                
-toml                      
-torch                     
-torchaudio                
-torchvision               
-tornado                   
-tqdm                      
-transformers              
-typing_extensions         
-typing-inspect            
-tzdata                    
-urllib3                   
-watchdog                  
-yarl                   
-pandas
-xlsxwriter
-fpdf
-pymupdf
+# Streamlit and its specific dependencies (from previous debugging)
+streamlit==1.19.0
+protobuf==3.20.3
+altair>=4.0.0,<5.0.0 # Required by Streamlit 1.19.0 for its charting components
+
+# PDF and Data Handling
+PyMuPDF==1.26.0       # For fitz (PDF processing) - version from your log
+pandas==2.2.3         # For DataFrame operations - version from your log
+fpdf2>=2.7.0          # For PDF generation (from fpdf import FPDF). fpdf2 is the maintained version.
+xlsxwriter==3.2.3     # For writing Excel files with Pandas - version from your log
+
+# Langchain Core and Components (versions from your log)
+langchain==0.3.25
+langchain-core==0.3.61
+langchain-community==0.3.24
+langchain-text-splitters==0.3.8
+
+# Langchain Integrations
+# For OpenAIEmbeddings (using openai v1.x SDK)
+openai==1.82.0        # Version from your log
+langchain-openai>=0.1.0,<0.2.0 # Provides OpenAI integrations for Langchain
+
+# For FAISS vector store
+faiss-cpu==1.11.0     # CPU version of FAISS - version from your log
+                      # Use faiss-gpu if you have a compatible NVIDIA GPU and CUDA setup
+
+# For Groq LLM
+langchain-groq==0.3.2 # Version from your log
